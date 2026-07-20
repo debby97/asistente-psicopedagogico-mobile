@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Asistente Psicopedagógico</string>
+    <string name="title_activity_main">Asistente Psicopedagógico</string>
+    <string name="package_name">cl.debby.asistentepsicopedagogico</string>
+    <string name="custom_url_scheme">cl.debby.asistentepsicopedagogico</string>
+</resources>
