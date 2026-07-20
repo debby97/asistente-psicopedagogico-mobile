@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Caso, ObservacionClinica, Bateria, BateriaItem, Instrumento } from '../types';
+import { supabase } from '../licensing/supabaseClient';
 import { 
   Users, 
   Plus, 
@@ -278,12 +279,8 @@ export default function GestorCasos({
         setWizardIsAiLoading(true);
         setWizardAiError(null);
         try {
-          const response = await fetch('/api/recommend-instruments', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
+          const { data, error: fnError } = await supabase.functions.invoke('recommend-instruments', {
+            body: {
               motive: wizardMotive,
               edad: activeCaso ? activeCaso.edad : 8,
               curso: activeCaso ? activeCaso.curso : 'No especificado',
@@ -298,15 +295,16 @@ export default function GestorCasos({
                 adaptacion_chilena: ins.adaptacion_chilena
               })),
               sessionsCount: wizardSessionsCount
-            })
+            }
           });
 
-          if (!response.ok) {
-            const errData = await response.json();
-            throw new Error(errData.error || 'Error al obtener recomendaciones de IA');
+          if (fnError) {
+            throw new Error((data && data.error) || fnError.message || 'Error al obtener recomendaciones de IA');
+          }
+          if (data && data.error) {
+            throw new Error(data.error);
           }
 
-          const data = await response.json();
           if (data && Array.isArray(data.recommendations)) {
             const matched: Array<{ instrumento: Instrumento; razon: string; sesion: number }> = [];
             data.recommendations.forEach((rec: any) => {

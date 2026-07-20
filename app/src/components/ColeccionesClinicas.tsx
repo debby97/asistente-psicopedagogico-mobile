@@ -58,10 +58,7 @@ export default function ColeccionesClinicas({
   const [selectedIns, setSelectedIns] = useState<Instrumento | null>(null);
   const [showAddTestDropdown, setShowAddTestDropdown] = useState(false);
 
-  // De los instrumentos, también generamos "Carpetas automáticas" por área de evaluación
-  const automaticAreas = Array.from(new Set(instrumentos.map(i => i.area)));
-
-  // Determinar la lista de colecciones y carpetas
+  // Determinar la lista de colecciones (solo carpetas reales creadas por el profesional)
   const getFoldersList = () => {
     const customFolders = colecciones.map(col => ({
       id: col.id,
@@ -72,19 +69,7 @@ export default function ColeccionesClinicas({
       itemIds: coleccionItems[col.id] || []
     }));
 
-    const systemFolders = automaticAreas.map(area => {
-      const matchingIds = instrumentos.filter(i => i.area === area).map(i => i.id);
-      return {
-        id: `sys_${area}`,
-        name: area,
-        description: `Pruebas estandarizadas del área de ${area.toLowerCase()}.`,
-        isCustom: false,
-        count: matchingIds.length,
-        itemIds: matchingIds
-      };
-    });
-
-    return [...systemFolders, ...customFolders];
+    return customFolders;
   };
 
   const folders = getFoldersList();
