@@ -1,6 +1,0 @@
-{
-  "name": "Asistente de Selección de Instrumentos de Evaluación Psicopedagógica",
-  "description": "Plataforma inteligente de consulta, planificación y apoyo al profesional para la selección y construcción de baterías de evaluación psicopedagógica.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

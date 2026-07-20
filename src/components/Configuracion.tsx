@@ -13,9 +13,11 @@ import {
   Table2, 
   Info,
   CheckCircle2,
-  BookOpen
+  BookOpen,
+  ShieldCheck
 } from 'lucide-react';
 import { DatabaseState, executeSQLQuery, exportDatabaseToSQL, importDatabaseFromSQL } from '../dbStore';
+import { getStoredLicenseState, clearLicenseState } from '../licensing/license';
 
 interface ConfiguracionProps {
   dbState: DatabaseState;
@@ -24,7 +26,8 @@ interface ConfiguracionProps {
 }
 
 export default function Configuracion({ dbState, setDbState, onProfileUpdate }: ConfiguracionProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'profile' | 'sql' | 'dictionary'>('profile');
+  const [activeSubTab, setActiveSubTab] = useState<'profile' | 'sql' | 'dictionary' | 'license'>('profile');
+  const [licenseState] = useState(() => getStoredLicenseState());
   
   // Profile settings state (local mock for UI, starts empty until saved/loaded)
   const [profName, setProfName] = useState(() => localStorage.getItem('prof_name') || '');
@@ -201,10 +204,70 @@ export default function Configuracion({ dbState, setDbState, onProfileUpdate }: 
             Glosario Técnico
           </span>
         </button>
+        <button
+          onClick={() => setActiveSubTab('license')}
+          className={`px-4 py-2 text-xs font-black transition-all border-2 rounded-t-xl relative -mb-[2px] ${
+            activeSubTab === 'license' 
+              ? 'bg-[#F5D56E] border-[#1A1A1A] text-[#1A1A1A] border-b-white z-10' 
+              : 'bg-white border-transparent text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          <span className="flex items-center gap-1.5">
+            <ShieldCheck className="h-4 w-4" />
+            Licencia
+          </span>
+        </button>
       </div>
 
       {/* Render subtab contents */}
       <div className="bg-white rounded-2xl border border-slate-200/70 p-6 shadow-xs">
+        {activeSubTab === 'license' && (
+          <div className="max-w-xl space-y-5">
+            {licenseState?.activo ? (
+              <div className="p-4 bg-emerald-50 border-2 border-emerald-200 rounded-xl space-y-1.5">
+                <span className="text-emerald-700 flex items-center gap-1.5 text-xs font-black">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Licencia activa en este equipo
+                </span>
+                {licenseState.customerName && (
+                  <p className="text-[11px] text-emerald-800 font-semibold">
+                    Titular: {licenseState.customerName}
+                  </p>
+                )}
+                {licenseState.expiresAt && (
+                  <p className="text-[11px] text-emerald-800 font-semibold">
+                    Vence: {new Date(licenseState.expiresAt).toLocaleDateString('es-CL')}
+                  </p>
+                )}
+                {!licenseState.expiresAt && (
+                  <p className="text-[11px] text-emerald-800 font-semibold">Sin fecha de vencimiento</p>
+                )}
+              </div>
+            ) : (
+              <div className="p-4 bg-[#FFF9F7] border-2 border-[#1A1A1A] rounded-xl text-xs font-bold text-[#1A1A1A]">
+                No hay licencia activa registrada en este equipo.
+              </div>
+            )}
+
+            <div>
+              <button
+                onClick={() => {
+                  if (confirm('¿Desactivar la licencia en este equipo? Deberás volver a ingresar el código para continuar usando la app.')) {
+                    clearLicenseState();
+                    window.location.reload();
+                  }
+                }}
+                className="px-4 py-2.5 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border-2 border-rose-200 rounded-lg transition-colors"
+              >
+                Desactivar licencia en este equipo
+              </button>
+              <p className="text-[10px] text-slate-400 font-medium mt-2">
+                Útil si vas a cambiar de dispositivo o necesitas reactivar con otro código.
+              </p>
+            </div>
+          </div>
+        )}
+
         {activeSubTab === 'profile' && (
           <form onSubmit={handleSaveProfile} className="max-w-xl space-y-5">
             {(!profName || !profTitle || !institution) && (

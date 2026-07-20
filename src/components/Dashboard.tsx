@@ -23,6 +23,7 @@ interface DashboardProps {
   casos: Caso[];
   baterias: Bateria[];
   colecciones: Coleccion[];
+  coleccionItems: { [colId: string]: string[] };
   onToggleFavorito: (id: string) => void;
   onNavigateToTab: (tab: string, args?: any) => void;
   onAddCaso: (caso: Omit<Caso, 'id' | 'creado_en'>) => void;
@@ -34,6 +35,7 @@ export default function Dashboard({
   casos,
   baterias,
   colecciones,
+  coleccionItems,
   onToggleFavorito,
   onNavigateToTab,
   onAddCaso
@@ -87,13 +89,22 @@ export default function Dashboard({
     onNavigateToTab('casos');
   };
 
-  // Carpetas o Colecciones principales (Agrupadas por área o colecciones guardadas)
-  const mainFolders = [
-    { name: 'Inteligencia y Cognición', area: 'Inteligencia', icon: Folder, color: 'text-indigo-500 bg-indigo-50 border-indigo-100', count: instrumentos.filter(i => i.area.toLowerCase().includes('inteli')).length },
-    { name: 'Lenguaje y Comunicación', area: 'Lenguaje', icon: Folder, color: 'text-blue-500 bg-blue-50 border-blue-100', count: instrumentos.filter(i => i.area.toLowerCase().includes('lengua')).length },
-    { name: 'Atención y Funciones Ejecutivas', area: 'Atención', icon: Folder, color: 'text-emerald-500 bg-emerald-50 border-emerald-100', count: instrumentos.filter(i => i.area.toLowerCase().includes('atenc') || i.area.toLowerCase().includes('ejecut')).length },
-    { name: 'Lectoescritura y Aprendizaje', area: 'Procesos lectores', icon: Folder, color: 'text-amber-500 bg-amber-50 border-amber-100', count: instrumentos.filter(i => i.area.toLowerCase().includes('lect') || i.area.toLowerCase().includes('escrit') || i.area.toLowerCase().includes('aprend')).length },
+  // Carpetas Clínicas reales del usuario (creadas manualmente en "Carpetas Clínicas")
+  const folderColors = [
+    'text-indigo-500 bg-indigo-50 border-indigo-100',
+    'text-blue-500 bg-blue-50 border-blue-100',
+    'text-emerald-500 bg-emerald-50 border-emerald-100',
+    'text-amber-500 bg-amber-50 border-amber-100',
+    'text-rose-500 bg-rose-50 border-rose-100',
+    'text-violet-500 bg-violet-50 border-violet-100',
   ];
+  const mainFolders = colecciones.slice(0, 4).map((col, idx) => ({
+    id: col.id,
+    name: col.nombre,
+    icon: Folder,
+    color: folderColors[idx % folderColors.length],
+    count: (coleccionItems[col.id] || []).length,
+  }));
 
   // Instrumentos favoritos completos
   const favoriteInstruments = instrumentos.filter(ins => favoritos.includes(ins.id));
@@ -291,31 +302,42 @@ export default function Dashboard({
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {mainFolders.map((folder, idx) => {
-                const Icon = folder.icon;
-                return (
-                  <div
-                    key={idx}
-                    onClick={() => onNavigateToTab('colecciones', { activeArea: folder.area })}
-                    className="p-4 bg-white border border-slate-200/70 rounded-2xl hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer flex items-center gap-3.5 group"
-                  >
-                    <div className={`w-11 h-11 rounded-xl shrink-0 border flex items-center justify-center ${folder.color}`}>
-                      <Icon className="h-5 w-5" />
+            {mainFolders.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {mainFolders.map((folder) => {
+                  const Icon = folder.icon;
+                  return (
+                    <div
+                      key={folder.id}
+                      onClick={() => onNavigateToTab('colecciones', { area: folder.id })}
+                      className="p-4 bg-white border border-slate-200/70 rounded-2xl hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer flex items-center gap-3.5 group"
+                    >
+                      <div className={`w-11 h-11 rounded-xl shrink-0 border flex items-center justify-center ${folder.color}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors truncate">
+                          {folder.name}
+                        </h4>
+                        <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                          {folder.count} {folder.count === 1 ? 'instrumento guardado' : 'instrumentos guardados'}
+                        </p>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors truncate">
-                        {folder.name}
-                      </h4>
-                      <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
-                        {folder.count} instrumentos catalogados
-                      </p>
-                    </div>
-                    <ChevronRight className="h-4 w-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div
+                onClick={() => onNavigateToTab('colecciones')}
+                className="p-5 bg-white border border-dashed border-slate-300 rounded-2xl hover:border-indigo-300 transition-all cursor-pointer text-center"
+              >
+                <p className="text-xs text-slate-500 font-semibold">
+                  Aún no tienes carpetas clínicas creadas. Haz clic para crear tu primera colección.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

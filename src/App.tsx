@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
-import { 
-  getInitialDatabase, 
-  saveDatabase, 
-  DatabaseState 
+import {
+  getInitialDatabase,
+  saveDatabase,
+  DatabaseState
 } from './dbStore';
-import { 
-  Instrumento, 
-  Caso, 
-  Bateria, 
-  BateriaItem, 
-  AgendaItem, 
-  ObservacionClinica, 
-  Coleccion 
+import {
+  Instrumento,
+  Caso,
+  Bateria,
+  BateriaItem,
+  AgendaItem,
+  ObservacionClinica,
+  Coleccion
 } from './types';
+import { getStoredLicenseState } from './licensing/license';
+import LicenseGate from './components/LicenseGate';
 
 // Importar componentes modulares rediseñados
 import Sidebar from './components/Sidebar';
@@ -27,6 +29,9 @@ import GlobalSearchBar from './components/GlobalSearchBar';
 import InstrumentoDetailPanel from './components/InstrumentoDetailPanel';
 
 export default function App() {
+  const [licenseActive, setLicenseActive] = useState<boolean>(
+    () => getStoredLicenseState()?.activo === true
+  );
   const [activeTab, setActiveTab] = useState('dashboard');
   
   // Estados para enrutamiento unificado y paso de parámetros entre pestañas
@@ -358,6 +363,7 @@ export default function App() {
             casos={uiCasos}
             baterias={dbState.baterias}
             colecciones={dbState.colecciones}
+            coleccionItems={coleccionItemsMapped}
             onToggleFavorito={handleToggleFavorito}
             onNavigateToTab={handleNavigateToTab}
             onAddCaso={handleAddCaso}
@@ -451,6 +457,10 @@ export default function App() {
         );
     }
   };
+
+  if (!licenseActive) {
+    return <LicenseGate onActivated={() => setLicenseActive(true)} />;
+  }
 
   return (
     <div className="flex flex-col md:flex-row h-[100dvh] bg-slate-50 overflow-hidden font-sans antialiased text-slate-800 relative">
